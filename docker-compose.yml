@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: db
+    environment:
+      - POSTGRES_USER=chancellor
+      - POSTGRES_DB=chancellor
+      - POSTGRES_PASSWORD=chancellor
+    ports:
+      - 5432:5432
+    volumes:
+      - chancellor-db:/var/lib/postgresql/data
+  api:
+    build:
+      context: .
+      target: dev
+    container_name: api
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://chancellor:chancellor@db:5432/chancellor
+    ports:
+      - 3000:3000
+
+volumes:
+  chancellor-db:
