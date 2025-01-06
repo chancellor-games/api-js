@@ -1,0 +1,12 @@
+{
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "port": 3000,
+        "timeout": 1,
+        "wait": 1
+      }
+    ]
+  }
+}
