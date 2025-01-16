@@ -1,39 +1,37 @@
 import express from "express";
-import pg from "pg";
 import pino from "pino";
 import httpLogger from "pino-http";
 
+import * as db from "#src/db/index.js";
 import pkg from "../package.json" with { type: "json" };
 
 const logger = pino();
 const app = express();
 app.use(httpLogger({ logger, autoLogging: false }));
+app.use(express.json());
 const port = process.env.PORT || 3000;
 
-const { Client } = pg;
-const client = new Client({
-  connectionString:
-    process.env.DATABASE_URL ||
-    "postgres://chancellor:chancellor@localhost:5432/chancellor",
-});
-await client.connect();
-const db_info = (
-  await client.query(
-    `SELECT current_catalog as database,
-            current_schema as schema,
-            user,
-            current_setting('server_encoding') as encoding,
-            current_setting('server_version') as version`,
-  )
-).rows[0];
+await db.init();
 
-app.get("/", (req, res) => {
-  res.json({
+app.get("/", async (req, res) => {
+  return res.json({
     name: "Chancellor Games API",
     version: pkg.version,
     spec: "https://chancellor.games",
     schema: "https://schema.chancellor.games",
-    db: db_info,
+    db: await db.info(),
+  });
+});
+
+app.post("/games", (req, res) => {
+  return res.json({});
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: "Internal Server Error",
   });
 });
 
@@ -44,7 +42,7 @@ const server = app.listen(port, () => {
 const shutdown = async () => {
   logger.info("Received kill signal, shutting down gracefully");
 
-  await client.end();
+  await db.shutdown();
 
   server.close(() => {
     process.exit(0);
