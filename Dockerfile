@@ -6,6 +6,7 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 COPY package.json /app
+COPY pnpm-lock.yaml /app
 
 FROM base AS dev
 

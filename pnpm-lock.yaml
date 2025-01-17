@@ -10,9 +10,6 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.21.2
-      express-sse:
-        specifier: ^0.5.3
-        version: 0.5.3
       pg:
         specifier: ^8.13.1
         version: 8.13.1
@@ -1530,12 +1527,6 @@ packages:
         integrity: sha512-bFi65yM+xZgk+u/KRIpekdSYkTB5W1pEf0Lt8Q8Msh7b+eQ7LXVtIB1Bkm4fvclDEL1b2CZkMhv2mOeF8tMdkA==,
       }
     engines: { node: ">=12.0.0" }
-
-  express-sse@0.5.3:
-    resolution:
-      {
-        integrity: sha512-DJF0nofFGq0IXJLGq95hfrryP3ZprVAVpyZUnmAk6QhHnm7zCzsHBNFP0i4FKFo2XjOf+JiYUKjT7jQhIeljpg==,
-      }
 
   express@4.21.2:
     resolution:
@@ -4137,8 +4128,6 @@ snapshots:
   etag@1.8.1: {}
 
   expect-type@1.1.0: {}
-
-  express-sse@0.5.3: {}
 
   express@4.21.2:
     dependencies:

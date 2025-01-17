@@ -8,6 +8,28 @@ const migrations = [
     ],
     down: [`DROP TABLE migration_status`],
   },
+  {
+    up: [
+      `CREATE TABLE IF NOT EXISTS games (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  state VARCHAR(16) NOT NULL DEFAULT 'setup',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  data JSONB NOT NULL DEFAULT '{}'
+)`,
+    ],
+    down: [`DROP TABLE games`],
+  },
+  {
+    up: [
+      `CREATE TABLE IF NOT EXISTS players (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  game_id UUID NOT NULL REFERENCES games(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  data JSONB NOT NULL DEFAULT '{}'
+)`,
+    ],
+    down: [`DROP TABLE players`],
+  },
 ];
 
 export default migrations;

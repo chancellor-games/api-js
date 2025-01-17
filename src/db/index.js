@@ -1,9 +1,11 @@
 import pg from "pg";
 
+import { dissoc, map } from "ramda";
+
 import migrations from "#src/db/migrations.js";
 
-const { Client } = pg;
-const client = new Client({
+const { Pool } = pg;
+const pool = new Pool({
   connectionString:
     process.env.DATABASE_URL ||
     "postgres://chancellor:chancellor@localhost:5432/chancellor",
@@ -11,7 +13,7 @@ const client = new Client({
 
 export const info = async () => {
   const db_info = (
-    await client.query(
+    await pool.query(
       `SELECT current_catalog as database,
               current_schema as schema,
               user,
@@ -28,7 +30,7 @@ export const info = async () => {
 
 export const version = async () => {
   try {
-    const res = await client.query("SELECT version FROM migration_status");
+    const res = await pool.query("SELECT version FROM migration_status");
     return res.rows[0]["version"];
   } catch {
     return 0;
@@ -40,6 +42,7 @@ export const up = async () => {
 
   for (let i = schema_version; i < migrations.length; i++) {
     const migration = migrations[i];
+    const client = await pool.connect();
     try {
       await client.query("BEGIN");
       for (const sql of migration.up) {
@@ -50,6 +53,8 @@ export const up = async () => {
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;
+    } finally {
+      client.release();
     }
   }
 
@@ -57,10 +62,63 @@ export const up = async () => {
 };
 
 export const init = async () => {
-  await client.connect();
   await up();
 };
 
 export const shutdown = async () => {
-  await client.end();
+  await pool.end();
+};
+
+const gather = (row) => ({
+  ...row.data,
+  ...dissoc("data", row),
+});
+
+const select_one = async (query, values) => {
+  const result = await pool.query(query, values);
+  return gather(result.rows[0]);
+};
+
+const select_many = async (query, values) => {
+  const result = await pool.query(query, values);
+  return map(gather, result.rows);
+};
+
+const insert = async (query, values) => {
+  const result = await pool.query(query, values);
+  return result.rows[0].id;
+};
+
+export const get_game = async (game_id) => {
+  return await select_one(
+    "SELECT id, state, created_at, data FROM games WHERE id = $1",
+    [game_id],
+  );
+};
+
+export const get_player = async (game_id, player_id) => {
+  return await select_one(
+    "SELECT id, created_at, data FROM players WHERE id = $1 AND game_id = $2",
+    [player_id, game_id],
+  );
+};
+
+export const get_players = async (game_id) => {
+  return await select_many(
+    "SELECT id, created_at, data FROM players WHERE game_id = $1",
+    [game_id],
+  );
+};
+
+export const create_game = async (game) => {
+  return await insert("INSERT INTO games (data) VALUES ($1) RETURNING id", [
+    game,
+  ]);
+};
+
+export const create_player = async (game_id, player) => {
+  return await insert(
+    "INSERT INTO players (game_id, data) VALUES ($1, $2) RETURNING id",
+    [game_id, player],
+  );
 };

@@ -16,8 +16,7 @@ services:
       target: dev
     container_name: api
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./src:/app/src
     depends_on:
       - db
     environment:
@@ -27,3 +26,4 @@ services:
 
 volumes:
   chancellor-db:
+    name: chancellor-db

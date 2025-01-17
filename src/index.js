@@ -1,30 +1,42 @@
 import express from "express";
-import pino from "pino";
 import httpLogger from "pino-http";
 
 import * as db from "#src/db/index.js";
-import pkg from "../package.json" with { type: "json" };
+import logger from "#src/logger.js";
+import {
+  get_game,
+  get_player,
+  index,
+  post_games,
+  post_player,
+} from "#src/routes.js";
+import * as sse from "#src/sse.js";
 
-const logger = pino();
 const app = express();
 app.use(httpLogger({ logger, autoLogging: false }));
 app.use(express.json());
 const port = process.env.PORT || 3000;
 
+// Initialized DB
 await db.init();
 
-app.get("/", async (req, res) => {
-  return res.json({
-    name: "Chancellor Games API",
-    version: pkg.version,
-    spec: "https://chancellor.games",
-    schema: "https://schema.chancellor.games",
-    db: await db.info(),
-  });
-});
+// Add Routes
+app.get("/", index);
+app.get("/games/:id", get_game);
+app.get("/games/:game_id/players/:id", get_player);
 
-app.post("/games", (req, res) => {
-  return res.json({});
+// Creating a new game
+app.post("/games", post_games);
+
+// Submitting actions
+app.post("/games/:game_id/players/:id", post_player);
+
+// SSE
+app.get("/games/:game_id/players/:id/events", (req, res) => {
+  const game_id = req.params.game_id;
+  const player_id = req.params.id;
+
+  return sse.init(game_id, player_id, req, res);
 });
 
 // eslint-disable-next-line no-unused-vars
@@ -42,9 +54,8 @@ const server = app.listen(port, () => {
 const shutdown = async () => {
   logger.info("Received kill signal, shutting down gracefully");
 
-  await db.shutdown();
-
-  server.close(() => {
+  server.close(async () => {
+    await db.shutdown();
     process.exit(0);
   });
 

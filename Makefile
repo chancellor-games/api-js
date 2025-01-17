@@ -1,7 +1,7 @@
 .PHONY: dev down build
 
 dev:
-	@docker-compose up -d
+	@docker-compose up -d --build
 	@docker-compose logs api -f
 
 down:
