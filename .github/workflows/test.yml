@@ -52,5 +52,4 @@ jobs:
       - name: Dependencies
         run: pnpm install
       - name: Test
-      - name: Commitlint
         run: pnpm --silent test:run
