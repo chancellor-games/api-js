@@ -98,14 +98,14 @@ export const get_game = async (game_id) => {
 
 export const get_player = async (game_id, player_id) => {
   return await select_one(
-    "SELECT id, created_at, data FROM players WHERE id = $1 AND game_id = $2",
+    "SELECT id, seat, created_at, data FROM players WHERE id = $1 AND game_id = $2",
     [player_id, game_id],
   );
 };
 
 export const get_players = async (game_id) => {
   return await select_many(
-    "SELECT id, created_at, data FROM players WHERE game_id = $1",
+    "SELECT id, seat, created_at, data FROM players WHERE game_id = $1",
     [game_id],
   );
 };
@@ -116,9 +116,9 @@ export const create_game = async (game) => {
   ]);
 };
 
-export const create_player = async (game_id, player) => {
+export const create_player = async (game_id, seat, player) => {
   return await insert(
-    "INSERT INTO players (game_id, data) VALUES ($1, $2) RETURNING id",
-    [game_id, player],
+    "INSERT INTO players (game_id, seat, data) VALUES ($1, $2, $3) RETURNING id",
+    [game_id, seat, player],
   );
 };

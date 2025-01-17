@@ -30,6 +30,10 @@ const migrations = [
     ],
     down: [`DROP TABLE players`],
   },
+  {
+    up: [`ALTER TABLE players ADD COLUMN seat SMALLINT NOT NULL`],
+    down: [`ALTER TABLE players DROP COLUMN seat`],
+  },
 ];
 
 export default migrations;
