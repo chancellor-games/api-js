@@ -10,6 +10,11 @@ services:
       - 5432:5432
     volumes:
       - chancellor-db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U chancellor -d chancellor
+      interval: 10s
+      timeout: 3s
+      retries: 3
   api:
     build:
       context: .
@@ -18,7 +23,8 @@ services:
     volumes:
       - ./src:/app/src
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgres://chancellor:chancellor@db:5432/chancellor
     ports:
